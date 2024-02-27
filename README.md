@@ -1,2 +1,7 @@
 # google-data-analytics-case-study
-This is the case study that i did for my google data analytics certificate.In this comprehensive Google Data Analytics case study, I delved into the intricacies of data analysis using the powerful techniques provided by Google. Through a systematic approach, I navigated diverse datasets, applying data cleaning, visualization, and statistical analysis to derive meaningful insights. The case study encompassed the entire data analytics process, from defining the problem and formulating hypotheses to presenting actionable recommendations. I showcased the transformative impact of data-driven decision-making, highlighting the role of analytics in solving real-world challenges and driving informed business strategies.
+
+This is the case study that i did for my google data analytics certificate.
+In this repository the main file is the html documetation file which describes all the analysis and the process i did with the recomendations too.
+the r case study file is the code that i used for analysis.
+The documentation rmd file is the documentation file in r markdown
+there is also a txt file which i made during my analysis just so i dont lose my track
