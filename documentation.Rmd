@@ -1,0 +1,261 @@
+---
+title: "Cyclist data Case study"
+author: "Sai Singireddy"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## **Documentation**
+
+### **Business task**:
+
+The business task involves me being a data analyst for a bike rental company and the problem mainly focusses on converting casual riders to members which could potentially lead to company growth. 
+
+Now i'm going to explain the way I addressed this problem from scatch and share my veiws and recommendations to acheive this task.
+
+### **Gathering the data:**
+
+Having obtained the dataset through Coursera, I utilized Python's Pandas and OS libraries to amalgamate the data of the 12 months from **April 2020 - March 2021**, resulting in a comprehensive dataset of 3.4 million records. Recognizing Python's limitations in handling such voluminous data and Excel's inability to load the entire dataset, I transitioned to R programming. This shift allows for more efficient processing and analysis of the extensive dataset, facilitating a clearer and more streamlined workflow.
+
+### **Getting started...**
+First I loaded all the essential packages that i'm going to need
+
+
+```{r loading essential libraries, warning=FALSE}
+library("dplyr")
+library("skimr")
+library("tidyverse")
+library("ggplot2")
+library("data.table")
+library("janitor")
+```
+
+
+Now I loaded my dataset that i'm going to work with in a variable cyclist_data and converted the data frame to enhanced version of dataframe called **data table** as this is more efficient and used for quick manipulation. 
+
+
+```{r loading dataset}
+cyclist_data <- read.csv("C:\\Users\\acer\\Desktop\\case study1\\combined_data.csv")
+cyclist_data <- data.table(cyclist_data)
+```
+
+Generating summary statistics and a basic understanding on the data using **Summary()** and also using **skim()** from **skimr** package which is a powerful tool for generating summary statistics and exploring the structure of your dataset.:
+
+
+```{r}
+summary(cyclist_data)
+skim(cyclist_data)
+```
+
+
+### **Data Wrangling**
+
+From the summary statistics the things i found i need to deal with are
+
+* Missing values
+* Inconsistent column names
+* Duplicated Ride_id's
+```{r}
+cyclist_data <- na.omit(cyclist_data)
+cyclist_data <- cyclist_data[!duplicated(cyclist_data$ride_id)]
+clean_names(cyclist_data)
+```
+
+**Clean names()** is a function in **janitor** package that ensures all the column names to be formatted consistently.
+
+
+### **Other manipulations**
+
+* I converted the available datetime series to posixct class as it's quite useful for analysis of datetime data types.
+* Also filtered dataset for rows containing start time after the end time.
+* Generated the days associated with the starting day and ending day using **weekdays()** function from lubridate package.
+* Generated Duration column in minutes using **difftime()** function.
+* Also added month column for the starting date.
+* removed the columns start_station_id and end_sation_id.
+
+
+```{r}
+cyclist_data$started_at <-as.POSIXct(cyclist_data$started_at,format="%Y-%m-%d %H:%M:%S")
+cyclist_data$ended_at <- as.POSIXct(cyclist_data$ended_at,format="%Y-%m-%d %H:%M:%S")
+cyclist_data <- subset(cyclist_data,ended_at>started_at)
+########## adding weekdays wrt starting and ending date
+cyclist_data <- cyclist_data %>%
+  mutate(starting_day=weekdays(cyclist_data$started_at),endidng_day=weekdays(cyclist_data$ended_at))
+cyclist_data <- cyclist_data %>%
+  mutate(duration_in_min=as.numeric(difftime(ended_at,started_at,units="mins")))
+cyclist_data <- cyclist_data %>%
+  mutate(month=format(started_at,"%B"))
+cyclist_data <- cyclist_data %>%
+  select(-c(start_station_id,end_station_id))
+```
+
+
+Now i rechecked the summary statistics for the cleaned and transformed data.
+
+
+```{r}
+summary(cyclist_data)
+skim(cyclist_data)
+```
+
+
+After checking the summary statistics i found there is something wrong with the duration column as the quartiles 1,3 and median seems to be normal but the max duration is way off the charts.So i plotted a simple box plot to checkout the outliers.
+
+
+```{r}
+boxplot(cyclist_data$duration_in_min, main = "Box plot for duration", col = "lightblue", border = "black")
+title(main = "Box plot for duration")
+xlabel <- "Cyclist Data"
+ylabel <- "Duration (minutes)"
+title(xlab = xlabel, ylab = ylabel)
+
+```
+
+
+Now it's clear that i need to deal with the outliers here. There is no specific idea given about how much time can person rent a bike. As the mean is around 30 minutes and the company gives bikes on a daily basis i'm considering a person could rent for maximum 10 hours(600 minutes) and minimum could be 3 minutes (< 3 min is not even a ride in my opinion).First i need to check how many records are with this error.
+
+
+```{r}
+dim(cyclist_data[cyclist_data$duration_in_min<3])
+dim(cyclist_data[cyclist_data$duration_in_min>600])
+```
+
+
+The ride with less than 3 minute duration may seem normal in some cases as biker may have some other work to deal with.But the duration more than 10 hours is definitely not normal, and also the max duration: 40 days is just not right.This could be due to improper returning of bikes or long duration rentals.So instead of removing these outliers i thought of using them for other analysis, so i saved them.And i removed them from original dataset that i've been working with.
+
+
+```{r}
+duration_outlier_data <- cyclist_data %>%
+  filter(duration_in_min >600)
+cyclist_data <- cyclist_data %>%
+  filter(duration_in_min>=3 & duration_in_min <=600)
+```
+ 
+ 
+I also noticed that there missing values in start_station and end_station although i omitted the rows with null values.This is because the field is not null but maybe it contains character like ' ' this. I thought i will deal with this later because there are nearly 1 lakh rows like this and removing them might not be the most useful thing i could do right now.
+
+### **Moving to visualizing**
+
+```{r}
+ggplot(data = cyclist_data)+
+  geom_bar(mapping = aes(x=starting_day,color=starting_day,fill=starting_day))+
+  labs(title = "Weekly rental trends",subtitle = "Analysing peak days for cycle rentals",x="Bikes rented on",y="Frequency")
+
+ggplot(data=cyclist_data)+
+  geom_bar(mapping=aes(x=starting_day,fill=member_casual))+
+  labs(title = "Type of customer contributing to renting on weekdays",x="Bikes rented on",y="Frequency")
+```
+
+
+* Based on the depicted plots, it is evident that both members and casual riders contribute nearly the same number of rentals. Additionally, the visualizations highlight that Saturday stands out as the peak day for rentals.
+
+
+```{r}
+pie(radius = 1,(rideable_count <- table(cyclist_data$rideable_type)),main = "Pie chart showing the type of bikes used")
+
+```
+
+* From this pie chart we can confirm that **docked bikes** are the showstopper and customer favorite type of bike category.
+
+```{r,echo=TRUE,eval=FALSE}
+ggplot(data=cyclist_data)+
+  geom_bar(mapping=aes(x=starting_day,fill=member_casual))+facet_wrap(~month)+
+  labs(title = "Monthly trends of bike usage",x="Weekday",y="frequency")
+
+ggplot(data=cyclist_data)+
+  geom_bar(mapping=aes(x=starting_day,fill=rideable_type))+facet_wrap(~month)+
+  labs(title = "Monthly trends of bike usage based on bike type",x="Weekday",y="frequency")
+```
+These both codes generate the following plots:
+
+![](C:/Users/acer/Desktop/case study1/Screenshot 2024-02-22 204830.png)
+
+* The peek months recorded are july to september where the casual riders and members were so actively contributing to the rentals. Maybe the reason is that these are the times of summer vacation.
+
+![](C:/Users/acer/Desktop/case study1/Screenshot 2024-02-22 210833.png)
+
+* From this plot we can observe that until july there were no sight of significant rentals of electric bikes but from july onwards the trend continuously rised, even after the peak months there was a significant number of electric bike rides. And from december the casual bikes are also at rise and we can say that from december customers stopped renting docked bikes and went for electric bikes and casual ones.That means either customers love trying new bikes or there may be a reason for the declined usage of bikes for certain periods.Now this could be a limitation of the data i gathered. 
+
+```{r eval=FALSE,echo=TRUE}
+ggplot(data=cyclist_data)+
+  geom_bar(mapping=aes(x=month,fill=rideable_type))+facet_wrap(~member_casual)+
+  labs(title="Monthly bike usage trends based on the customer type",x='',y="frequency")
+```
+
+![](C:/Users/acer/Desktop/case study1/Screenshot 2024-02-22 213805.png)
+
+* Sometimes scale of the graph can hide some potential insights, so i plotted this graph just to make sure that i did not overlook the magnitude of rise of rentals in the peak months. This shows that there was a huge demand of bikes in the peak months(july - september) from both casual riders and members.
+
+I even utilized Tableau for vizualising the regions where there are significant volumes of bike rentals.I used the latitude and longitude of starting points to create a scatterplotplot on map and compared this with the map of chicago from google maps.
+
+![](C:/Users/acer/Desktop/case study1/Screenshot 2024-02-24 150344.png)
+
+![](C:/Users/acer/Desktop/case study1/Screenshot 2024-02-24 150552.png)
+
+Analyzing the provided plots reveals that peak ride activity is concentrated in areas to the north, particularly in River North and Lincoln Park. Additionally, the surge in rides during the summer months can be attributed to the allure of biking near Lake Michigan, offering a delightful experience during the warmer season.
+
+### **Analysing the top 10 stations**
+Previously i noticed that there were around 1 lakh records missing the starting and ending stations names. So first i filtered the data to remove all the records with start station name as ' ' and used this new dataset to get the top 10 stations. 
+```{r eval=FALSE, echo=TRUE}
+cleaned_data <- cyclist_data %>%
+  filter(start_station_name!='')
+your_datatable_top_10 <- cleaned_data %>%
+  count(start_station_name, sort = TRUE) %>%
+  head(10) %>%
+  inner_join(woo_data, by = "start_station_name")
+
+
+
+# Create a bar plot using ggplot2
+ggplot(your_datatable_top_10, aes(x = start_station_name)) +
+  geom_bar(color="blue",fill="lightblue") +
+  ggtitle("Top 10 Stations") +
+  xlab("Station") +
+  ylab("Frequency")
+
+```
+
+
+![](C:/Users/acer/Desktop/case study1/Screenshot 2024-02-24 152904.png)
+
+In the plot, "Streeter Dr & Grand Ave" stands out as the top station with approximately 33 thousand rides. Following closely are "Theater on the Lake," "Clark and Elm Street," and "Lake Shore Dr & North Blvd," each recording approximately 29 thousand rides.
+
+### **Now coming to the improper returning of bikes**
+
+I previously stored the records with duration more than 10 hours in **duration_outlier_data** now i want to generate some plots to see whether i can get any pattern associated with these improper returning of bikes.
+
+```{r eval=FALSE, echo=TRUE}
+ggplot(data = duration_outlier_data)+
+  geom_bar(mapping=aes(x=month,fill=rideable_type))+
+  labs(title="montly trends of Bikes being inappropriately returned",subtitle = "Type of Bikes being taken by customers for more than 25 days",x="Month",y="frequency")+
+  facet_wrap(~member_casual)
+```
+
+![](C:/Users/acer/Desktop/case study1/Screenshot 2024-02-23 212421.png)
+
+In the displayed plot, it is clear that from June to September, there is a notable increase in instances where casual riders fail to return bikes, indicating unauthorized actions. Notably, docked bikes are primarily involved in these incidents. Electric bikes, on the other hand, seem to be exempt from this trend, possibly due to their built-in tracking features, suggesting that docked bikes are more vulnerable and require closer supervision. While casual bikes currently have a lower likelihood of facing similar issues as they experienced rise from december onwards but recent trends indicate a potential rise in such incidents for this category as well.
+
+### **My recommendations**
+
+The main goal of the business task is to recommend some potential ideas that could convert the non casual riders to members.After analysing the data that i've been provided with, the recommendations that i came up with are:
+
+* Provide a 1-hour pass for a set price, especially targeting rides that are typically less than 30 minutes. This encourages casual riders to opt for longer rides at a reasonable cost.
+
+* Introduce a monthly membership plan, especially during peak months (July-September). Offering this plan at a reduced rate can encourage ridership during summer vacation.
+
+* Introducing privilage of long-term rentals for riders with membership that last for some days by taking appropriate measures. For  casual riders we could just increase the price. 
+
+* Launch advertising campaigns for memberships between May and July to capitalize on the peak months of bike rentals. This ensures that potential customers are aware of the benefits and cost savings of becoming members during the busiest cycling season. Emphasize the health benefits of cycling in promotional materials to attract more members.
+
+* Target advertising efforts at popular and refreshing locations such as River North and Lincoln Park, which are near Lake Michigan. These areas are likely to attract outdoor enthusiasts and potential cyclists. Highlight the convenience of bike sharing and the joy of cycling in these attractive locations.This could enhance the reach of our advertisements.
+
+* Promote the diverse range of bikes available for rental. Showcase the different types of bikes to cater to various preferences and needs. This information can be included in advertising materials to educate potential customers about the options available.
+
+* Deploying bike trackers to prevent unauthorized or improper rentals, thereby efficiently addressing the high demand during peak times.
+
+
+**-------------------------------------------------------------------------------------------------THE END----------------------------------------------------------------------------------**

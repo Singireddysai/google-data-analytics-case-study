@@ -1,0 +1,42 @@
+currently working with case study for my data analytics certificate.the case study involves all the pahses in the data sceince life cycle process.the steps i took to do this case tudy are:
+
+*i have 12 csv files and i combined all of them using pandas and os libraries in python.i got nearly 3.4 million rows and i know that python and excel are incompatible for the data that is this much large so moved on to R programming language 
+* i converted the data frame to a data table to enhance the performance and yes it did
+*for preprocessing :-
+1)i removed any null values consisting rows in my data frame
+2)removed the duplicates of rider id's
+3)used clean names function(janitor package) so that column names will be unique and consistent              
+4)removed rows where starting time is after or same as ending time by converting them into posixct class
+5)added starting week day and ending weekday to the cleaned dataframe
+6)added duration column in minutes
+7)added month column for statring time
+
+*noticed that there are 709 starting stations, 707 ending stations and everybody returned cycles at the same day  
+*created plot1 for seeing which day is the peak day
+*created plot2 for seeing which type of customer is contributing to the rentals according to the weekday
+*created plot3 for checking which type of bike is used frequently
+*created plot 4 showing monthly trend on bike usage:observed that from july to september more casual riders are active
+* plot showing what category of customers have been keeping bikes for more than 25 days according to months
+* while checking summary stats i noticed that there were so many outliers upto 60000 minutes  means that the bikes werent returned properly.so i removed these outliers supposing that minimum ride is 5 min and maximum ride is 10 hrs
+* i also notices that there are 10 percent of total rides are < 5mins
+* noticed that mostly casual customers rented bikes between june to september have been keeping bikes for more than 25 days and majority are the docked bikes that are not being returned
+* there were incostisencies in start_sation naes and end_station names im clearing start station names which are = '' so that i can still get the top 10 stations based on their total rides provided 
+* so i noticed streeter Dr & Grand Ave is on 1st place withb approx 33 thousand rides and then Theater on the lake, clark and elm street,lake shore Dr & north bivid with approx 29thousand rides
+* i also generated a scatterplot on map in tableau to get the peak region of customer reantals and then i compared it with google maps data to see that near north side,river north,linclon park are the peak places to get more customers
+* i also notices that electric bikes are also being rented significantly from august onwards and their usage is rising.even after the peak months electric bikes were used significantly (more than docked bikes). so maybe electric bikes were introduced in august (MAYBE)
+
+------------------------------------------------------------------------------------------------------------------------------------------
+
+
+MY RECOMMENDATIONS for encouraging more customers for converting from casuals to members:
+
+* as there are significant number if rides being less than 5min long i would recommend to give 1 hour pass for certain amount
+* as there are peak months of renting in (july-september) maybe because of summer vacation, i would like to add montly membership too for less price so that this could be a habit for them.maybe we could give the pros of cycling too
+* we could advertise about our membership in the early may to july as they were the peak times to attract customers
+* we could even advertise at river noth and lincoln park as they are refreshing places: they are near lake michigan so that we could attract more customers 
+*advertise about electric bikes as they are the new eye cathchers for customers
+------------------------------------------------------------------------------------------------------------------------------------------ANAMOLIES noticed:(maybe for me)
+*docked bikes are not being returned properly some even are returned after a month and this is being done in months(june to september) by mostly casual riders(i assumed that bikes must be returned within 10 hrs max)
+*starting and ending stations are not being noted correctly
+* starting and ending times are also not being noted correctly
+------------------------------------------------------------------------------------------------------------------------------------------this is only a rough documentation done in my note pad any suggestions are accepted
