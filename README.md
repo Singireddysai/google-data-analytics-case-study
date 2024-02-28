@@ -1,4 +1,4 @@
-# google-data-analytics-case-study
+# Google-data-analytics-case-study
 
 This is the case study that i did for my google data analytics certificate.
 In this repository the main file is the html documetation file which describes all the analysis and the process i did with the recomendations too.Please try to download and go through it       
