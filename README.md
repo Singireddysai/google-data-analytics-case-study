@@ -5,7 +5,7 @@ This repository presents a comprehensive case study completed as part of the Goo
 
 ## 📁 Files Overview
 
-- **main.html**: The primary HTML documentation file providing a comprehensive analysis and recommendations.
+- **documentation.html**: The primary HTML documentation file providing a comprehensive analysis and recommendations.
 - **r_case_study.R**: The R code used for conducting the analysis.
 - **documentation.rmd**: The R Markdown documentation file.
 - **analysis_log.txt**: A text file used to track progress during analysis.
