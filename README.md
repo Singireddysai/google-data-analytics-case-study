@@ -12,7 +12,7 @@ This repository presents a comprehensive case study completed as part of the Goo
 
 ## 🌐 RPubs Link
 
-[**Link to RPubs Document**](https://rpubs.com/sai_singireddy/1154129)
+[**🔗CLick to view RPubs Document**](https://rpubs.com/sai_singireddy/1154129)
 
 ## 📝 Overview
 
